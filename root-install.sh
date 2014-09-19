@@ -1,79 +1,77 @@
 #!/usr/bin/env bash
 
-SITE='unittestingdemo'
-DOMAIN='unittestingdemo.dev'
+SITE='unittestdemo'
+LOG_FILE='/home/vagrant/root-install.log'
 
-echo "---- update apt-get ----"
-sudo apt-get update
+trap ctrl_c INT
+ctrl_c() {
+  tput bold >&3; tput setaf 1 >&3; echo -e '\nCancelled by user' >&3; echo -e '\nCancelled by user'; tput sgr0 >&3; if [ -n "$!" ]; then kill $!; fi; exit 1
+}
 
-echo "---- setup database ----"
-sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password root'
-sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password root'
+log2file() {
+  exec 3>&1 4>&2
+  trap 'exec 2>&4 1>&3' 0 1 2 3
+  exec 1>${LOG_FILE} 2>&1
+}
 
-echo "---- install libraries for php5.5 ----"
+log2file
 
-sudo apt-get install -y vim curl python-software-properties
+echo "---- update apt-get ----" >&3
+apt-get update
 
-echo "---- add apt-repository for php5.5 ----"
+echo "---- setup database ----" >&3
+debconf-set-selections <<< 'mysql-server mysql-server/root_password password root'
+debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password root'
 
-sudo add-apt-repository -y ppa:ondrej/php5
+echo "---- install libraries for php5.5 ----" >&3
+apt-get install -y vim curl python-software-properties
 
-echo "---- update apt-get (again, now that we have the new repository) ----"
+echo "---- add apt-repository for php5.5 ----" >&3
+add-apt-repository -y ppa:ondrej/php5
 
-sudo apt-get update
+echo "---- update apt-get (again, now that we have the new repository) ----" >&3
+apt-get update
 
-echo "---- install libraries ----"
+echo "---- install libraries ----" >&3
+apt-get install -y subversion php5 apache2 libapache2-mod-php5 php5-curl php5-gd php5-mcrypt mysql-server-5.5 php5-mysql git-core
 
-sudo apt-get install -y subversion php5 apache2 libapache2-mod-php5 php5-curl php5-gd php5-mcrypt mysql-server-5.5 php5-mysql git-core
-
-echo "--- Installing and configuring Xdebug ---"
-sudo apt-get install -y php5-xdebug
-
-
-cat << EOF | sudo tee -a /etc/php5/mods-available/xdebug.ini
+echo "---- installing and configuring Xdebug ----" >&3
+apt-get install -y php5-xdebug
+cat << EOF | tee -a /etc/php5/mods-available/xdebug.ini
 xdebug.scream=0
 xdebug.cli_color=1
 xdebug.show_local_vars=1
 EOF
 
-echo "---- enable mod rewrite ----"
+echo "---- enable mod rewrite ----" >&3
+a2enmod rewrite
 
-sudo a2enmod rewrite
-
-echo "---- download composer ----"
-
+echo "---- download composer ----" >&3
 curl -sS https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
+mv composer.phar /usr/local/bin/composer
 
-echo "---- setup root directory ----"
-
+echo "---- setup root directory ----" >&3
 mkdir -p /vagrant/
-sudo rm -rf /var/www/html
-sudo ln -fs /vagrant/ /var/www/html
+rm -rf /var/www/html
+ln -fs /vagrant/ /var/www/html
 
-echo "---- turn on error reporting ----"
-
+echo "---- turn on error reporting ----" >&3
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/apache2/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/apache2/php.ini
 
-echo "---- set apache configurations ----"
-
+echo "---- set apache configurations ----" >&3
 sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-echo "---- restart apache ----"
+echo "---- restart apache ----" >&3
+service apache2 restart
 
-sudo service apache2 restart
-
-echo "---- create database ----"
-
-mysqladmin -uroot -proot create $SITE
+echo "---- create database ----" >&3
+mysqladmin -uroot -proot create "${SITE}"
 cd /vagrant
 
-
-echo "---- install wp-cli ----"
-
+echo "---- install wp-cli ----" >&3
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-sudo mv wp-cli.phar /usr/local/bin/wp
+mv wp-cli.phar /usr/local/bin/wp
 chmod u+rwx /usr/local/bin/wp
 
-echo "--- Done with root stuff ---"
+echo "---- done with root stuff, logged to ${LOG_FILE} ----" >&3
