@@ -26,6 +26,16 @@ echo "---- install libraries ----"
 
 sudo apt-get install -y subversion php5 apache2 libapache2-mod-php5 php5-curl php5-gd php5-mcrypt mysql-server-5.5 php5-mysql git-core
 
+echo "--- Installing and configuring Xdebug ---"
+sudo apt-get install -y php5-xdebug
+
+
+cat << EOF | sudo tee -a /etc/php5/mods-available/xdebug.ini
+xdebug.scream=0
+xdebug.cli_color=1
+xdebug.show_local_vars=1
+EOF
+
 echo "---- enable mod rewrite ----"
 
 sudo a2enmod rewrite

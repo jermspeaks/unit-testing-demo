@@ -5,8 +5,8 @@
 VAGRANTFILE_API_VERSION = "2"
 IP_TO_USE = '192.168.0.65'
 PORT_TO_USE = '8055'
-DOMAIN_NAME = 'unittestingdemo.dev'
-SITE = 'unittestingdemo'
+DOMAIN_NAME = 'unittestdemo.dev'
+SITE = 'unittestdemo'
 
 
 unless Vagrant.has_plugin?("vagrant-hostmanager")
