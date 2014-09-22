@@ -104,8 +104,4 @@ class Demo_Plugin {
 
 }
 
-if ( ! defined( WP_UNIT_TEST_ENVIRONMENT ) || ! WP_UNIT_TEST_ENVIRONMENT ) {
-
-	add_action( 'init', array( new Demo_Plugin, 'init' ) );
-
-}
+add_action( 'init', array( new Demo_Plugin, 'init' ) );
