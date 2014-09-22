@@ -90,6 +90,10 @@ class Demo_Plugin {
 
 	/**
 	 * @codeCoverageIgnore
+	 *
+	 * Note: I could have not ignored this and used something like php-vcr (http://php-vcr.github.io/)
+	 * however for the sake of simplicity and to demonstrate @codeCoverageIgnore I opted not to.
+	 *
 	 */
 	function get_listing() {
 
